@@ -9,7 +9,7 @@
     <link href="/public/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Additional CSS (if needed) -->
-    <!-- <link rel="stylesheet" href="/public/assets/css/style.css"> -->
+    <link rel="stylesheet" href="/public/assets/css/style.css">
 </head>
 <body>
     <header class="bg-light p-3 mb-4">
