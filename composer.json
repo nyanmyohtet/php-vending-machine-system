@@ -1,0 +1,21 @@
+{
+    "name": "nyanm/vending-machine-system",
+    "description": "Vending Machine System using PHP",
+    "autoload": {
+        "psr-4": {
+            "Nyanm\\VendingMachineSystem\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "nyanmyohtet",
+            "email": "nyanmyohtet.bx@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    },
+    "require": {
+        "firebase/php-jwt": "^6.10"
+    }
+}
