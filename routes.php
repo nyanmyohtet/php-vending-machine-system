@@ -15,5 +15,14 @@ $routes = [
     'GET /products/purchase/([0-9]+)/([a-zA-Z0-9-]+)' => ['ProductsController', 'purchaseProduct'],
     'POST /products/processPurchase' => ['ProductsController', 'processPurchase'],
 
+    // API routes
+    'POST /api/v1/auth/login' => ['AuthApiController', 'login'],
+    
+    'GET /api/v1/products' => ['ProductsApiController', 'getProducts'],
+    // /api/v1/products/{id}
+    'GET /api/v1/products/([0-9]+)' => ['ProductsApiController', 'getProductDetails'],
+    'POST /api/v1/products' => ['ProductsApiController', 'addProduct'],
+    'PUT /api/v1/products/([0-9]+)' => ['ProductsApiController', 'updateProduct'],
+    'DELETE /api/v1/products/([0-9]+)' => ['ProductsApiController', 'deleteProduct'],
 ];
 ?>

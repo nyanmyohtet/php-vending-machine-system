@@ -1,11 +1,16 @@
 <?php
+
+require_once __DIR__ . '/vendor/autoload.php';
 require_once 'routes.php';
 require_once 'config/Database.php';
 require_once 'models/User.php';
 require_once 'models/Product.php';
 require_once 'models/Transaction.php';
 require_once 'controllers/AuthController.php';
+require_once 'controllers/AuthApiController.php';
 require_once 'controllers/ProductsController.php';
+require_once 'controllers/ProductsApiController.php';
+require_once 'middlewares/TokenMiddleware.php';
 
 // start the session
 session_start();
@@ -13,6 +18,9 @@ session_start();
 // initialize the database and product model
 $database = new Database();
 $db = $database->getConnection();
+
+// Initialize the middlewares
+$tokenMiddleware = new TokenMiddleware();
 
 // Initialize the models
 $productModel = new Product($db);
@@ -61,6 +69,7 @@ if ($matchedRoute) {
 function resolveDependencies($controllerName, $productModel, $userModel, $transactionModel, &$session, $tokenMiddleware) {
     $dependencies = [
         'AuthController' => [$userModel, &$session],
+        'AuthApiController' => [$userModel],
         'ProductsController' => [$productModel, $transactionModel, &$session],
         'ProductsApiController' => [$productModel, $tokenMiddleware],
     ];

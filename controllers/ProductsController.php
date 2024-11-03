@@ -4,11 +4,14 @@ class ProductsController {
     private $product;
     private $transaction;
     private $session;
+    public $redirectUrl;
+    public $errors = [];
 
     public function __construct($product, $transaction, $session) {
         $this->product = $product;
         $this->transaction = $transaction;
         $this->session = $session;
+        $this->redirectUrl = null;
     }
 
     /**
@@ -16,8 +19,8 @@ class ProductsController {
      */
     public function index() {
         // pagination
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 2;
+        $page = (int) ($_GET['page'] ?? 1);
+        $limit = (int) ($_GET['limit'] ?? 10);
         $offset = ($page - 1) * $limit;
 
         // sorting
@@ -38,12 +41,14 @@ class ProductsController {
     public function viewProduct() {
         $id = $_GET['id'] ?? null;
         if (!$id) {
-            $errors[] = "Product ID is required.";
-            include __DIR__ . '/../views/products/view.php';
-            return;
+            return $this->errorResponse("Product ID is required.");
         }
 
         $product = $this->product->getById($id);
+        if (!$product) {
+            return $this->errorResponse("Product not found.");
+        }
+
         include __DIR__ . '/../views/products/view.php';
     }
 
@@ -51,7 +56,10 @@ class ProductsController {
      * Show new Product form
      */
     public function addProduct() {
-        $this->requireAdmin();
+        if (!$this->requireAdmin()) {
+            header('Location: ' . $this->redirectUrl);
+            return;
+        }
 
         include __DIR__ . '/../views/products/add.php';
     }
@@ -60,38 +68,36 @@ class ProductsController {
      * Create a new product
      */
     public function createProduct() {
-        $this->requireAdmin();
+        if (!$this->requireAdmin()) {
+            header('Location: ' . $this->redirectUrl);
+            return;
+        }
 
-        $name = $_POST['name'] ?? null;
-        $price = $_POST['price'] ?? null;
-        $quantity = $_POST['quantity'] ?? null;
-        $errors = [];
+        $name = $_POST['name'] ?? '';
+        $price = $_POST['price'] ?? 0;
+        $quantity = $_POST['quantity'] ?? 0;
 
         // validation
-        if (empty($name)) {
-            $errors[] = "Product name is required.";
-        }
-        if ($price === null || $price <= 0) {
-            $errors[] = "Price must be a positive number.";
-        }
-        if ($quantity === null || $quantity < 0) {
-            $errors[] = "Quantity Available cannot be negative.";
-        }
+        $this->validateProductData($name, $price, $quantity);
 
-        if ($errors) {
+        if ($this->errors) {
             include __DIR__ . '/../views/products/add.php';
             return;
         }
 
         $this->product->create($name, $price, $quantity);
-        header('Location: /products');
+        $this->redirectUrl = '/products';
+        header('Location: ' . $this->redirectUrl);
     }
     
     /**
      * Show update Product form
      */
     public function editProduct() {
-        $this->requireAdmin();
+        if (!$this->requireAdmin()) {
+            header('Location: ' . $this->redirectUrl);
+            return;
+        }
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -99,6 +105,10 @@ class ProductsController {
         }
 
         $product = $this->product->getById($id);
+        if (!$product) {
+            return $this->errorResponse("Product not found.");
+        }
+
         include __DIR__ . '/../views/products/edit.php';
     }
 
@@ -106,43 +116,41 @@ class ProductsController {
      * Update a product
      */
     public function updateProduct() {
-        $this->requireAdmin();
+        if (!$this->requireAdmin()) {
+            header('Location: ' . $this->redirectUrl);
+            return;
+        }
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
             return $this->errorResponse("Product ID is required.");
         }
 
-        $name = $_POST['name'] ?? null;
-        $price = $_POST['price'] ?? null;
-        $quantity = $_POST['quantity'] ?? null;
-        $errors = [];
+        $name = $_POST['name'] ?? '';
+        $price = $_POST['price'] ?? 0;
+        $quantity = $_POST['quantity'] ?? 0;
 
         // validation
-        if (empty($name)) {
-            $errors[] = "Product name is required.";
-        }
-        if ($price === null || $price <= 0) {
-            $errors[] = "Price must be a positive number.";
-        }
-        if ($quantity === null || $quantity < 0) {
-            $errors[] = "Quantity Available cannot be negative.";
-        }
+        $this->validateProductData($name, $price, $quantity);
 
-        if ($errors) {
+        if ($this->errors) {
             include __DIR__ . '/../views/products/edit.php';
             return;
         }
 
         $this->product->update($id, $name, $price, $quantity);
-        header('Location: /products');
+        $this->redirectUrl = '/products';
+        header('Location: ' . $this->redirectUrl);
     }
 
     /**
      * Delete a product
      */
     public function deleteProduct() {
-        $this->requireAdmin();
+        if (!$this->requireAdmin()) {
+            header('Location: ' . $this->redirectUrl);
+            return;
+        }
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -180,16 +188,16 @@ class ProductsController {
         $errors = [];
 
         if (!$id || $quantity <= 0) {
-            return $this->errorResponse("Invalid product or quantity.");
+            $this->errors[] =  "Invalid product or quantity.";
         }
 
         $product = $this->product->getById($id);
         if (!$product) {
-            return $this->errorResponse("Product not found.");
+            $this->errors[] = "Product not found.";
         }
 
         if ($quantity > $product['quantity_available']) {
-            $errors[] = "Insufficient stock for this product.";
+            $this->errors[] = "Insufficient stock for this product.";
         }
 
         if ($errors) {
@@ -204,7 +212,22 @@ class ProductsController {
         // Log the transaction
         $this->logTransaction($id, $quantity, $product['price']);
 
-        header("Location: /products/view?id={$id}");
+        // header("Location: /products/view?id={$id}");
+        
+        $this->redirectUrl = "/products/view?id={$id}";
+        header('Location: ' . $this->redirectUrl);
+    }
+
+    private function validateProductData($name, $price, $quantity) {
+        if (empty($name)) {
+            $this->errors[] = "Product name is required.";
+        }
+        if ($price <= 0) {
+            $this->errors[] = "Price must be a positive number.";
+        }
+        if ($quantity < 0) {
+            $this->errors[] = "Quantity Available cannot be negative.";
+        }
     }
 
     private function errorResponse($message) {
@@ -233,10 +256,15 @@ class ProductsController {
     }
 
     private function requireAdmin() {
-        if (!$this->isAdmin()) {
-            header('Location: /products');
-            return;
+        if (!isset($this->session['user_id'])) {
+            $this->redirectUrl = '/auth/login';
+            return false;
         }
+        if (!$this->isAdmin()) {
+            $this->redirectUrl = '/products';
+            return false;
+        }
+        return true;
     }
 
     private function logTransaction($productId, $quantity, $price) {

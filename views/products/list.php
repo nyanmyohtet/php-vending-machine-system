@@ -23,7 +23,9 @@
         </div>
         
         <!-- Add New Product Button -->
+        <?php if (isset($this->session['user_role']) && $this->session['user_role'] === 'Admin'): ?>
         <a href="/products/add" class="btn btn-primary">Add Product</a>
+        <?php endif; ?>
     </div>
 
     <table class="table table-striped table-hover table-bordered caption-top">  
