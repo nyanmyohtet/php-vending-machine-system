@@ -11,11 +11,11 @@ class Database {
     public function __construct() {
         $config = require 'config.php';
         
-        $this->host = $config['host'];
-        $this->port = $config['port'];
-        $this->dbName = $config['db_name'];
-        $this->username = $config['username'];
-        $this->password = $config['password'];
+        $this->host = $config['database']['host'];
+        $this->port = $config['database']['port'];
+        $this->dbName = $config['database']['db_name'];
+        $this->username = $config['database']['username'];
+        $this->password = $config['database']['password'];
     }
 
     public function getConnection(): ?PDO {
