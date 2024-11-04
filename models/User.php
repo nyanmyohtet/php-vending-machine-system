@@ -7,7 +7,9 @@ class User {
         $this->conn = $db;
     }
 
-    // Retrieve a single user by username
+    /**
+     * Retrieve a single user by username
+     */
     public function getByUsername($username) {
         $sql = "SELECT * FROM " . $this->table . " WHERE username = :username";
         $stmt = $this->conn->prepare($sql);

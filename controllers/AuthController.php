@@ -30,6 +30,9 @@ class AuthController {
         include __DIR__ . '/../views/auth/login.php';
     }
 
+    /**
+     * Login User
+     */
     public function login() {
         $username = $_POST['username'];
         $password = $_POST['password'];
@@ -45,7 +48,7 @@ class AuthController {
 
             header("Location: /products");
         } else {
-            $errors[] = "Invalid username or password.";
+            $this->errors[] = "Invalid username or password.";
             include __DIR__ . '/../views/auth/login.php';
             return;
         }
