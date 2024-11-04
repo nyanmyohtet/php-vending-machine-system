@@ -63,7 +63,7 @@ if ($matchedRoute) {
     }
 } else {
     http_response_code(404);
-    echo "404 Not Found!";
+    include __DIR__ . '/views/common/404.php';
 }
 
 function resolveDependencies($controllerName, $productModel, $userModel, $transactionModel, &$session, $tokenMiddleware) {
