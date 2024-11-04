@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__. '/../models/User.php';
 
 class AuthController {
     private $user;
@@ -15,10 +13,21 @@ class AuthController {
         include __DIR__. '/../views/auth/register.php';
     }
 
+    /**
+     * Register new User
+     */
     public function register() {
         $username = $_POST['username'];
         $password = $_POST['password'];
         $role = $_POST['role'] ?? 'User';
+
+        // validate username duplicate
+        $user = $this->user->getByUserName($username);
+        if ($user) {
+            $this->errors[] = "Username already exist.";
+            include __DIR__ . '/../views/auth/register.php';
+            return;
+        }
         
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $this->user->create($username, $hashedPassword, $role);
