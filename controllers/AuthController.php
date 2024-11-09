@@ -9,6 +9,9 @@ class AuthController {
         $this->session = $session;
     }
 
+    /**
+     * Show Register Page
+     */
     public function registerPage() {
         include __DIR__. '/../views/auth/register.php';
     }
@@ -34,13 +37,15 @@ class AuthController {
         header('Location: /auth/login');
     }
 
-    // Show login form
+    /**
+     * Show Login Page
+     */
     public function loginPage() {
         include __DIR__ . '/../views/auth/login.php';
     }
 
     /**
-     * Login User
+     * Login existing User
      */
     public function login() {
         $username = $_POST['username'];
@@ -63,6 +68,9 @@ class AuthController {
         }
     }
 
+    /**
+     * Logout User
+     */
     public function logout() {
         session_start();
         session_unset();
